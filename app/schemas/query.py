@@ -1,13 +1,17 @@
+# app/schemas/query.py
 from pydantic import BaseModel
-from datetime import datetime
+from typing import Optional
+
+class DocumentCreate(BaseModel):
+    title: Optional[str]
+    filename: Optional[str]
+    text: Optional[str]
+    source: Optional[str] = None
 
 class DocumentResponse(BaseModel):
     id: int
-    title: str
-    filename: str
-    text: str
-    uploaded_at: datetime   # ✅ correct type
+    title: Optional[str]
+    filename: Optional[str]
 
-    model_config = {
-        "from_attributes": True  # replaces orm_mode=True in Pydantic v2
-    }
+    class Config:
+        orm_mode = True
