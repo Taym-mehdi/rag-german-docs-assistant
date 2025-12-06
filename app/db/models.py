@@ -12,7 +12,7 @@ class Document(Base):
     title = Column(String(256), nullable=True)
     filename = Column(String(512), nullable=True)
     source = Column(String(512), nullable=True)
-    uploaded_at = Column(DateTime, server_default=func.now())
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
     text = Column(Text, nullable=True)
 
     # Relationship to chunks

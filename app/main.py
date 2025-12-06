@@ -1,29 +1,38 @@
 # app/main.py
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.ingestion.ingest import ingest_document
+from app.db.database import Base, engine
 
-from app.db.database import Base, engine, get_db
-from app.db import models
-from app.schemas.query import DocumentCreate, DocumentResponse
+from pydantic import BaseModel
 
-# Create database tables automatically
+# Create tables on start (development only)
 Base.metadata.create_all(bind=engine)
+
+class DocumentCreate(BaseModel):
+    title: str | None = None
+    filename: str | None = None
+    text: str
+    
 
 app = FastAPI()
 
-@app.post("/documents", response_model=DocumentResponse)
-def create_document(doc: DocumentCreate, db: Session = Depends(get_db)):
-    new_doc = models.Document(
+
+@app.post("/documents")
+def upload_document(doc: DocumentCreate, db: Session = Depends(get_db)):
+
+    document = ingest_document(
+        db=db,
         title=doc.title,
         filename=doc.filename,
-        text=doc.text,
-        source=doc.source
+        text=doc.text
     )
-    db.add(new_doc)
-    db.commit()
-    db.refresh(new_doc)
-    return new_doc
 
-@app.get("/")
-def root():
-    return {"message": "RAG Assistant API is running"}
+    return {
+        "id": document.id,
+        "title": document.title,
+        "filename": document.filename,
+        "uploaded_at": document.uploaded_at.isoformat(),
+        "chunks": len(document.chunks)
+    }
