@@ -2,24 +2,34 @@
 
 from typing import List
 
-def simple_chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+def chunk_text(
+        text: str,
+        chunk_size: int = 500,
+        overlap: int = 50
+):
+    
     """
     Split text into overlapping chunks.
-    Example:
-        chunk1: 0-500
-        chunk2: 450-950
-    Overlap helps the model keep context.
+    Returns list of dicts with text + positions.
+
     """
     if not text : 
         return []
     
     chunks = []
     start = 0 
+    length = len(text)
 
-    while start < len (text):
+
+    while start < length:
         end = start + chunk_size
         chunk = text[start:end]
-        chunks.append((chunk, start, end))
+        chunks.append({
+            "text": chunk,
+            "start": start,
+            "end": min(end, length),
+        })
+
         start = end - overlap
 
     return chunks
