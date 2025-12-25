@@ -16,7 +16,7 @@ class DocumentCreate(BaseModel):
     text: str
     
 
-app = FastAPI()
+app = FastAPI(title="RAG German Docs Assistant")
 
 
 @app.post("/documents")

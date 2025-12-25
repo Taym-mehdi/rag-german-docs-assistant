@@ -5,29 +5,13 @@ __pycache__/
 *.pyd
 
 # Virtual environments
-.venv/
-env/
+myproject-env/
 venv/
-
-# Jupyter notebooks checkpoints
-.ipynb_checkpoints/
-
-# IDE / editor folders
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-
-# Data and models (you can create a separate models folder later)
-data/
-models/
-outputs/
-
-# Environment and secrets
 .env
-*.env
 
-# Logs
-logs/
-*.log
+# Databases
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
