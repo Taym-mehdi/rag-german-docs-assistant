@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-import uuid
 
 from app.db.models import Document, Chunk
 from app.ingestion.chunker import chunk_text
@@ -22,7 +21,7 @@ def ingest_document(
     - Store vectors
     """
 
-    # 1. Create document
+    # 1️⃣ Create document
     document = Document(
         title=title,
         filename=filename,
@@ -32,12 +31,11 @@ def ingest_document(
     db.commit()
     db.refresh(document)
 
-    # 2. Chunk text
+    # 2️⃣ Chunk text
     chunks = chunk_text(text)
 
-    chunk_objects: list[Chunk] = []
-
-    for c in chunks:
+    chunk_objects = []
+    for idx, c in enumerate(chunks):
         chunk_obj = Chunk(
             document_id=document.id,
             chunk_text=c["text"],
@@ -48,33 +46,32 @@ def ingest_document(
         chunk_objects.append(chunk_obj)
 
     db.commit()
+    db.refresh(document)
 
-    # 3. Generate embeddings
+    # 3️⃣ Generate embeddings
     embedder = EmbeddingService()
     texts = [c.chunk_text for c in chunk_objects]
     embeddings = embedder.embed(texts)
 
-    # 4. Prepare vector-store payload
-    chunk_ids = [str(uuid.uuid4()) for _ in chunk_objects]
+    # 4️⃣ Store embeddings in vector store
+    vector_store = VectorStore()
 
+    chunk_ids = [str(c.id) for c in chunk_objects]  # unique IDs
     metadatas = [
         {
-            "document_id": document.id,
-            "chunk_id": chunk.id,
-            "title": title,
-            "filename": filename,
+            "document_id": c.document_id,
+            "chunk_index": idx,
+            "filename": document.filename
         }
-        for chunk in chunk_objects
+        for idx, c in enumerate(chunk_objects)
     ]
 
-    # 5. Store vectors
-    vector_store = VectorStore()
     vector_store.add_embeddings(
         ids=chunk_ids,
         embeddings=embeddings,
         documents=texts,
-        metadatas=metadatas,
+        metadatas=metadatas
     )
 
-    db.refresh(document)
+    # 5️⃣ Return the document
     return document

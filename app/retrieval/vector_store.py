@@ -32,11 +32,17 @@ class VectorStore:
             metadatas=metadatas,
         )
 
-    def search(self, query_embedding, n_results=5):
-        """
-        Perform semantic search.
-        """
-        return self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=n_results,
+    def similarity_search(self, query: str, top_k: int = 3):
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=top_k
         )
+        # Format results nicely
+        hits = []
+        for i in range(len(results['ids'][0])):
+            hits.append({
+                'id': results['ids'][0][i],
+                'document': results['documents'][0][i],
+                'score': results['distances'][0][i]
+            })
+        return hits
